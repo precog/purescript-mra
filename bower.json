@@ -1,0 +1,40 @@
+{
+  "name": "purescript-mraspec",
+  "homepage": "https://github.com/slamdata/purescript-mraspec",
+  "description": "A formal specification for MRA",
+  "keywords": [
+    "purescript"
+  ],
+  "license": "Apache 2",
+  "ignore": [
+    "**/.*",
+    "bower_components",
+    "node_modules",
+    "output",
+    "tests",
+    "tmp",
+    "bower.json",
+    "Gruntfile.js",
+    "package.json"
+  ],
+  "dependencies": {
+    "purescript-integers": "~0.2.1",
+    "purescript-console": "~0.1.1",
+    "purescript-prelude": "~0.1.4",
+    "purescript-tuples": "~0.4.0",
+    "purescript-either": "~0.2.3",
+    "purescript-monoid": "~0.3.2",
+    "purescript-exceptions": "~0.3.4",
+    "purescript-control": "~0.3.2",
+    "purescript-maybe": "~0.3.5",
+    "purescript-maps": "~0.5.4",
+    "purescript-sets": "~0.5.7",
+    "purescript-math": "~0.2.0",
+    "purescript-strings": "~0.7.1",
+    "purescript-eff": "~0.1.2",
+    "purescript-lists": "~0.7.9",
+    "purescript-profunctor": "~0.3.2",
+    "purescript-foldable-traversable": "~0.4.2",
+    "purescript-transformers": "~0.8.4"
+  }
+}

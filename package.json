@@ -1,0 +1,8 @@
+{
+  "name": "purescript-mraspec",
+  "description": "A definition and reference implementation for MRA",
+  "license": "Apache 2",
+  "devDependencies": {
+    "pulp": "~4.0.1"
+  }
+}
