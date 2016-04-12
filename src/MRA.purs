@@ -37,7 +37,7 @@ module MRA.Data where
   import Data.String(toCharArray)
   import Data.Tuple(Tuple(..), snd)
 
-  import Data.EqMap as M
+  import Data.OrdMap as M
   import Data.List as L
 
   data Primitive = PrimNull | PrimInt Int | PrimChar Char -- etc
@@ -182,7 +182,7 @@ module MRA.Data where
     show (Array                v) = "(Array (" ++ show v ++ "))"
     show (Map                  v) = "(Map (" ++ show v ++ "))"
 
-module Data.EqMap
+module Data.OrdMap
   ( Map()
   , alter
   , empty
@@ -201,7 +201,7 @@ module Data.EqMap
   import Data.Monoid(class Monoid)
   import Data.Maybe(Maybe(), maybe)
   import Data.Tuple(Tuple(..), fst, snd)
-  import Data.List(List(..), nub)
+  import Data.List(List(..), nub, reverse)
   import Data.Foldable(foldl)
 
   data Map k v = Map { reversed :: List k, values :: M.Map k v }
@@ -213,7 +213,7 @@ module Data.EqMap
   empty = Map { reversed : Nil, values : M.empty }
 
   fromList :: forall k v. (Ord k) => List (Tuple k v) -> Map k v
-  fromList l = Map { reversed : fst <$> l, values : M.fromList l }
+  fromList l = Map { reversed : fst <$> reverse l, values : M.fromList l }
 
   insert :: forall k v. (Ord k) => k -> v -> Map k v -> Map k v
   insert k v (Map r) = Map { reversed : Cons k r.reversed, values : M.insert k v r.values }
@@ -535,7 +535,7 @@ module MRA.Core
 
   import Prelude (class Ord, (>>=), (<$>), (>>>), (<<<), (<*>), ($), (-), (<>), (>), (<), bind, id, return, pure, map, flip)
   import Data.List (List(Nil, Cons), length, (..), zipWith, drop, take, (!!), head, filter, reverse, updateAt)
-  import Data.EqMap as M
+  import Data.OrdMap as M
   import Data.Set(Set(), fromList)
   import Data.Maybe (Maybe(Just, Nothing), fromMaybe)
   import Data.Tuple (Tuple(Tuple))
@@ -786,14 +786,14 @@ module MRA.Core
        drop    m' l)
 
 module MRA.Combinators where
-  import Prelude ((>>>), eq, id)
+  import Prelude ((>>>), (+), eq, id)
 
-  import Data.EqMap as M
+  import Data.OrdMap as M
   import Data.Maybe(fromMaybe)
   import Data.List((!!))
 
-  import MRA.Data (Data(Map, Array, Primitive, Undefined), Primitive(PrimInt, PrimChar, PrimNull), primString)
-  import MRA.Core (Dataset, autojoin_d, peek_d, lshift_d, map_d, nest_d, swap_d, project_d)
+  import MRA.Data (Data(Map, Array, Primitive, Undefined), Primitive(PrimInt, PrimChar, PrimNull), primString, primInt)
+  import MRA.Core (Dataset, autojoin_d, peek_d, lshift_d, map_d, nest_d, swap_d, reduce_d, project_d)
 
   -- | Fractures maps and arrays, no matter how deeply nested, into path
   -- | segments that terminate in leaves, stored in an array.
@@ -908,5 +908,12 @@ module MRA.Combinators where
       f (Primitive (PrimInt  _)) = primString "int"
       f (Array               _ ) = primString "array"
       f (Map                 _ ) = primString "map"
+
+  -- | Count reduction.
+  count :: Dataset -> Dataset
+  count = reduce_d f (primInt 0)
+    where
+      f (Primitive (PrimInt v)) _ = primInt (v + 1)
+      f (                    _) _ = Undefined
 
   -- join :: (Data -> Data -> Data) -> (Data -> Data -> Boolean) -> Dataset -> Dataset -> Dataset

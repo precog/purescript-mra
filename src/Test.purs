@@ -1,15 +1,19 @@
 module Main where
-  import Prelude(Unit, class Show, class Eq, ($), (==), (/=), (++), bind, show)
+  import Prelude(Unit, class Show, class Eq, ($), (==), (/=), (++), bind, pure, show)
 
   import Data.Tuple(Tuple(..))
-  -- import Data.List(List(), fromFoldable)
+
+  import Data.Foldable(foldl)
+  import Data.Array as A
+  import Data.List as L
 
   import Control.Monad.Eff(Eff)
   import Control.Monad.Eff.Console(CONSOLE, log)
 
   import MRA.Provenance(Provenance(..), (/\), (\/), (>>))
-  import MRA.Data(makeMap, primString, primInt)
-  import MRA.Core(Dataset(), literal_d, project_d)
+  import MRA.Data(Data(), makeMap, primString, primInt)
+  import MRA.Core(Dataset(), literal_d, project_d, values)
+  import MRA.Combinators(count, map_flatten_values)
 
   type TestResult = forall r. Eff (console :: CONSOLE | r) Unit
 
@@ -22,6 +26,12 @@ module Main where
   assertNotEqual l r =
     if l /= r then log $ "Pass: " ++ show l ++ " /= " ++ show r
     else log $ "FAIL: " ++ show l ++ " == " ++ show r
+
+  assertValues :: Array Data -> Dataset -> TestResult
+  assertValues a d = assertEqual a (toArray $ values d)
+    where
+      toArray :: forall a. L.List a -> Array a
+      toArray = foldl (\as a -> as ++ pure a) []
 
   entuple :: forall a b. a -> b -> Tuple a b
   entuple = Tuple
@@ -37,10 +47,14 @@ module Main where
     ] ]
 
   olympics :: Dataset
-  olympics = project_d (primString "olympics") universe
+  olympics = map_flatten_values $ project_d (primString "olympics") universe
 
-  testProvenance :: TestResult
-  testProvenance =
+  test_project_d :: TestResult
+  test_project_d = do
+   assertValues [primInt 1924, primInt 1926, primInt 1928] (project_d (primString "year") olympics)
+
+  test_provenance :: TestResult
+  test_provenance =
     let
       projPrimInt4 = Proj (primInt 4)
       projPrimInt3 = Proj (primInt 3)
@@ -71,11 +85,13 @@ module Main where
       -- distributivity of sums through seqs
       assertEqual (projPrimInt4 >> (projPrimInt3 \/ projPrimInt2)) (projPrimInt4 >> projPrimInt3 \/ projPrimInt4 >> projPrimInt2)
 
-  testJoinKeys :: TestResult
-  testJoinKeys = do
+  test_join_keys :: TestResult
+  test_join_keys = do
     log "Dummy"
 
   main :: forall r. Eff (console :: CONSOLE | r) Unit
   main = do
-    testProvenance
-    testJoinKeys
+    test_provenance
+    test_join_keys
+
+    test_project_d

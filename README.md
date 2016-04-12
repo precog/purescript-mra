@@ -9,6 +9,6 @@ Quasar's support for SQL<sup>2</sup> is layered atop MRA, and many features of t
 
 Tests for the reference implementation (such as they are) are located in `src/Test.purs`.
 
-# MRA Reference
+# MRA Spec
 
-TODO: A high-level mathematical specification of the work contained herein.
+TODO: A higher-level mathematical specification of the work contained herein which elides irrelevant details of this implementation.
