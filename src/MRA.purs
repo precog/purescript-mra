@@ -29,10 +29,10 @@ module Data.Accessor where
   get (Accessor _ g) = g
 
 module MRA.Data where
-  import Prelude (class Eq, class Ord, class Semigroup, class Show, Ordering(GT, LT, EQ), (==), (<$>), (>>>), (<<<), (<>), (<=), ($), (++), (+), (-), map, compare, pure, show)
+  import Prelude (class Eq, class Ord, class Semigroup, class Show, Ordering(GT, LT, EQ), (==), (<$>), (>>>), (<<<), (<>), (<=), ($), (++), (+), (-), append, compare, map, pure, show)
   import Data.Monoid (class Monoid)
   import Data.Accessor (Getter, Accessor(Accessor))
-  import Data.Maybe (fromMaybe)
+  import Data.Maybe (Maybe(..), fromMaybe)
   import Data.Foldable(foldr, foldl)
   import Data.String(toCharArray)
   import Data.Tuple(Tuple(..), snd)
@@ -110,6 +110,17 @@ module MRA.Data where
   fieldAccessor :: String -> Accessor Data Data
   fieldAccessor = primString >>> keyAccessor
 
+  asString :: Data -> Maybe String
+  asString d =
+    case d of
+      Array cs -> foldl (\s c -> s ++ Data.Char.toString c) "" <$> asString0 cs
+      _        -> Nothing
+    where
+      asString0 :: L.List Data -> Maybe (L.List Char)
+      asString0 (L.Cons (Primitive (PrimChar c)) cs) = L.Cons c <$> asString0 cs
+      asString0 L.Nil                                = Just L.Nil
+      asString0 _                                    = Nothing
+
   indexAccessor :: Int -> Accessor Data Data
   indexAccessor idx = Accessor set get
     where
@@ -176,10 +187,10 @@ module MRA.Data where
 
   instance showData :: Show Data where
     show (Undefined             ) = "Undefined"
-    show (Primitive (PrimNull  )) = "(Primitive PrimNull)"
-    show (Primitive (PrimInt  v)) = "(Primitive (PrimInt " ++ show v ++ "))"
-    show (Primitive (PrimChar v)) = "(Primitive (PrimChar " ++ show v ++ "))"
-    show (Array                v) = "(Array (" ++ show v ++ "))"
+    show (Primitive (PrimNull  )) = "primNull"
+    show (Primitive (PrimInt  v)) = "(primInt " ++ show v ++ ")"
+    show (Primitive (PrimChar v)) = "(primChar " ++ show v ++ ")"
+    show (Array                v) = fromMaybe ("(Array (" ++ show v ++ "))") ((\s -> "(primString " ++ show s ++ ")") <$> asString (Array v))
     show (Map                  v) = "(Map (" ++ show v ++ "))"
 
 module Data.OrdMap

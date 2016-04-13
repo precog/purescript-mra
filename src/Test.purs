@@ -52,6 +52,7 @@ module Main where
   test_project_d :: TestResult
   test_project_d = do
    assertValues [primInt 1924, primInt 1926, primInt 1928] (project_d (primString "year") olympics)
+   assertValues [primString "Boulder", primString "Boulder", primString "Billings"] (project_d (primString "city") olympics)
 
   test_provenance :: TestResult
   test_provenance =
