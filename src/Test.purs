@@ -1,5 +1,5 @@
 module Main where
-  import Prelude(Unit, class Show, class Eq, ($), (==), (/=), (++), bind, pure, show)
+  import Prelude(Unit, class Show, class Eq, ($), (==), (/=), (++), bind, const, pure, show)
 
   import Data.Tuple(Tuple(..))
 
@@ -12,7 +12,7 @@ module Main where
 
   import MRA.Provenance(Provenance(..), (/\), (\/), (>>))
   import MRA.Data(Data(), makeMap, primString, primInt)
-  import MRA.Core(Dataset(), literal_d, project_d, values)
+  import MRA.Core(Dataset(), dimensionality, literal_d, lshift_d, map_d, peek_d, project_d, values)
   import MRA.Combinators(count, map_flatten_values)
 
   type TestResult = forall r. Eff (console :: CONSOLE | r) Unit
@@ -51,8 +51,21 @@ module Main where
 
   test_project_d :: TestResult
   test_project_d = do
-   assertValues [primInt 1924, primInt 1926, primInt 1928] (project_d (primString "year") olympics)
-   assertValues [primString "Boulder", primString "Boulder", primString "Billings"] (project_d (primString "city") olympics)
+    assertValues [primInt 1924, primInt 1926, primInt 1928] (project_d (primString "year") olympics)
+    assertValues [primString "Boulder", primString "Boulder", primString "Billings"] (project_d (primString "city") olympics)
+
+  test_map_d :: TestResult
+  test_map_d = do
+    assertValues [primInt 1, primInt 1, primInt 1] (map_d (const $ primInt 1) olympics)
+
+  test_dimensionality :: TestResult
+  test_dimensionality = do
+    assertEqual 1 (dimensionality olympics)
+    assertEqual 2 (dimensionality $ lshift_d olympics)
+
+  test_peek_d :: TestResult
+  test_peek_d = do
+    assertValues [primInt 1, primInt 2, primInt 3] (peek_d olympics)
 
   test_provenance :: TestResult
   test_provenance =
@@ -95,4 +108,7 @@ module Main where
     test_provenance
     test_join_keys
 
+    test_dimensionality
     test_project_d
+    test_map_d
+    test_peek_d
