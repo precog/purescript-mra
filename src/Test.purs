@@ -12,8 +12,8 @@ module Main where
 
   import MRA.Provenance(Provenance(..), (/\), (\/), (>>))
   import MRA.Data(Data(), makeMap, primString, primInt)
-  import MRA.Core(Dataset(), dimensionality, literal_d, lshift_d, map_d, peek_d, project_d, values)
-  import MRA.Combinators(count, map_flatten_values)
+  import MRA.Core(Dataset(), dimensionality, literal_d, lshift_d, map_d, project_d, values)
+  import MRA.Combinators(count, map_flatten_values, domain)
 
   type TestResult = forall r. Eff (console :: CONSOLE | r) Unit
 
@@ -63,9 +63,9 @@ module Main where
     assertEqual 1 (dimensionality olympics)
     assertEqual 2 (dimensionality $ lshift_d olympics)
 
-  test_peek_d :: TestResult
-  test_peek_d = do
-    assertValues [primInt 1, primInt 2, primInt 3] (peek_d olympics)
+  test_domain :: TestResult
+  test_domain = do
+    assertValues [primInt 1, primInt 2, primInt 3] (domain $ project_d (primString "olympics") universe)
 
   test_provenance :: TestResult
   test_provenance =
@@ -111,4 +111,4 @@ module Main where
     test_dimensionality
     test_project_d
     test_map_d
-    test_peek_d
+    test_domain

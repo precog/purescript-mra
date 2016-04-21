@@ -537,7 +537,6 @@ module MRA.Core
   , lshift_d
   , map_d
   , nest_d
-  , peek_d
   , project_d
   , reduce_d
   , swap_d
@@ -571,12 +570,6 @@ module MRA.Core
   -- | Filters a dataset based on a boolean predicate applied to the values.
   filter_d :: (Data -> Boolean) -> Dataset -> Dataset
   filter_d f (Dataset r) = Dataset $ r { values = filter (get _Value >>> f) r.values }
-
-  -- | Replicates the last value in the dimensional stack into value space.
-  peek_d :: Dataset -> Dataset
-  peek_d (Dataset r) = Dataset $ r { values = f <$> r.values }
-    where
-      f v = set _Value v (fromMaybe Undefined $ head (get _Identity v))
 
   -- | Projects a key / index from arrays and maps.
   project_d :: Data -> Dataset -> Dataset
@@ -797,14 +790,15 @@ module MRA.Core
        drop    m' l)
 
 module MRA.Combinators where
-  import Prelude ((>>>), (+), eq, id)
+  import Prelude ((>>>), (<$>), (+), (-), eq, id)
 
   import Data.OrdMap as M
   import Data.Maybe(fromMaybe)
-  import Data.List((!!))
+  import Data.Tuple(Tuple(..))
+  import Data.List((!!), (..), zipWith, length)
 
   import MRA.Data (Data(Map, Array, Primitive, Undefined), Primitive(PrimInt, PrimChar, PrimNull), primString, primInt)
-  import MRA.Core (Dataset, autojoin_d, peek_d, lshift_d, map_d, nest_d, swap_d, reduce_d, project_d)
+  import MRA.Core (Dataset, autojoin_d, lshift_d, map_d, nest_d, swap_d, reduce_d, project_d)
 
   -- | Fractures maps and arrays, no matter how deeply nested, into path
   -- | segments that terminate in leaves, stored in an array.
@@ -815,6 +809,16 @@ module MRA.Combinators where
   -- | `fracture >>> unfracture = id`
   unfracture :: Dataset -> Dataset
   unfracture = map_d id -- TODO
+
+  replicate :: Dataset -> Dataset
+  replicate = map_d f
+    where
+      f (Map    v) = (M.fromList >>> Map) ((\(Tuple k v) -> Tuple k k) <$> M.toList v)
+      f (Array v0) = let v = zipWith Tuple (primInt <$> (0 .. (length v0 - 1))) v0 in (M.fromList >>> Map) ((\(Tuple i e) -> Tuple i i) <$> v)
+      f v          = Map (M.singleton v Undefined)
+
+  domain :: Dataset -> Dataset
+  domain = replicate >>> lshift_d
 
   -- | Forms a new dimension by transforming the values.
   -- |
@@ -832,7 +836,7 @@ module MRA.Combinators where
   -- | Flattens arrays and maps, returning the values of the new dimension, and
   -- | without increasing the dimensionality of the datset.
   flatten_id :: Dataset -> Dataset
-  flatten_id = lshift_d >>> peek_d >>> nest_d
+  flatten_id = domain >>> nest_d
 
   -- | Coerces to some type.
   coerce :: (Data -> Boolean) -> Dataset -> Dataset
@@ -856,7 +860,7 @@ module MRA.Combinators where
 
   -- | Zooms into and returns the keys of maps. {_:}
   map_zoom_keys :: Dataset -> Dataset
-  map_zoom_keys = map_zoom_values >>> peek_d
+  map_zoom_keys = coerce_maps >>> domain
 
   -- | Zooms into and returns the values of maps. {_} / {:_}
   map_zoom_values :: Dataset -> Dataset
@@ -864,7 +868,7 @@ module MRA.Combinators where
 
   -- | Zooms into and returns the indices of array elements. [_:]
   array_zoom_indices :: Dataset -> Dataset
-  array_zoom_indices = array_zoom_values >>> peek_d
+  array_zoom_indices = coerce_arrays >>> domain
 
   -- | Zooms into and returns the values of array elements. [_] / [:_]
   array_zoom_values :: Dataset -> Dataset
