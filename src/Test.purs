@@ -12,7 +12,7 @@ module Main where
 
   import MRA.Provenance(Provenance(..), (/\), (\/), (>>))
   import MRA.Data(Data(), makeMap, primString, primInt)
-  import MRA.Core(Dataset(), dimensionality, literal_d, lshift_d, map_d, project_d, values)
+  import MRA.Core(Dataset(), dimensionality, identities, literal_d, lshift_d, map_d, project_d, values)
   import MRA.Combinators(count, map_flatten_values, domain)
 
   type TestResult = forall r. Eff (console :: CONSOLE | r) Unit
@@ -107,6 +107,7 @@ module Main where
 
   test_reduce_d :: TestResult
   test_reduce_d = do
+    log $ show (identities olympics)
     assertValues [primInt 3] (count olympics)
 
   test_mra_core :: TestResult

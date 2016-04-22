@@ -543,7 +543,7 @@ module MRA.Core
   , values
   ) where
 
-  import Prelude (class Ord, (>>=), (<$>), (>>>), (<<<), (<*>), ($), (-), (<>), (>), (<), bind, id, return, pure, map, flip)
+  import Prelude (class Ord, class Show, (>>=), (<$>), (>>>), (<<<), (<*>), (++), ($), (-), (<>), (>), (<), bind, flip, id, return, pure, map, show)
   import Data.List (List(Nil, Cons), length, (..), zipWith, drop, take, (!!), head, filter, reverse, updateAt)
   import Data.OrdMap as M
   import Data.Set(Set(), fromList)
@@ -793,6 +793,9 @@ module MRA.Core
        take    (m' - n' - 1) (drop n' l) <>
        listIdx n' l  <>
        drop    m' l)
+
+  instance showDataset :: Show Dataset where
+    show (Dataset r) = "Dataset { values : " ++ show r.values ++ ", dims : " ++ show r.dims ++ "}"
 
 module MRA.Combinators where
   import Prelude ((>>>), (<$>), (+), (-), eq, id)
