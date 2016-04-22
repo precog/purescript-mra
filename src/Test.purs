@@ -99,16 +99,41 @@ module Main where
       -- distributivity of sums through seqs
       assertEqual (projPrimInt4 >> (projPrimInt3 \/ projPrimInt2)) (projPrimInt4 >> projPrimInt3 \/ projPrimInt4 >> projPrimInt2)
 
+      test_join_keys
+
   test_join_keys :: TestResult
   test_join_keys = do
-    log "Dummy"
+    log "Testing join keys"
+
+  test_reduce_d :: TestResult
+  test_reduce_d = do
+    assertValues [primInt 3] (count olympics)
+
+  test_mra_core :: TestResult
+  test_mra_core = do
+    log "Testing MRA core"
+    test_dimensionality
+
+    test_project_d
+    test_map_d
+    test_reduce_d
+
+  test_mra_combinators :: TestResult
+  test_mra_combinators = do
+    log "Testing MRA combinators"
+    test_domain
+
+  test_data :: TestResult
+  test_data = do
+    log "Testing Data"
+    test_domain
 
   main :: forall r. Eff (console :: CONSOLE | r) Unit
   main = do
-    test_provenance
-    test_join_keys
+    test_data
 
-    test_dimensionality
-    test_project_d
-    test_map_d
-    test_domain
+    test_provenance
+
+    test_mra_core
+
+    test_mra_combinators

@@ -206,19 +206,19 @@ module Data.OrdMap
   , unionWith
   , values ) where
 
-  import Prelude(class Eq, class Functor, class Ord, class Semigroup, class Show, ($), (<$>), (++), (>>>), (==), (&&), compare, flip, map, pure, show)
+  import Prelude(class Eq, class Functor, class Ord, class Semigroup, class Show, ($), (<$>), (++), (>>>), (==), (&&), compare, eq, flip, map, pure, show)
 
   import Data.Map as M
   import Data.Monoid(class Monoid)
   import Data.Maybe(Maybe(), maybe)
   import Data.Tuple(Tuple(..), fst, snd)
   import Data.List(List(..), nub, reverse)
-  import Data.Foldable(foldl)
+  import Data.Foldable(foldl, any)
 
   data Map k v = Map { reversed :: List k, values :: M.Map k v }
 
   alter :: forall k v. (Ord k) => (Maybe v -> Maybe v) -> k -> Map k v -> Map k v
-  alter f k (Map r) = Map $ r { values = M.alter f k r.values }
+  alter f k (Map r) = Map $ { reversed : if any (eq k) r.reversed then r.reversed else Cons k r.reversed, values : M.alter f k r.values }
 
   empty :: forall k v. Map k v
   empty = Map { reversed : Nil, values : M.empty }
@@ -701,6 +701,11 @@ module MRA.Core
 
   -- | Peels off the current dimension by reducing over all values that have the
   -- | same position in (n-1)th dimensional space.
+  -- |
+  -- | NOTE: This definition is currently broken, in the sense that it attempts
+  -- |       no normalization, so two points in the same (n-1th) location
+  -- |       may not fall in the same reduction bucket because the structural
+  -- |       representation of their location may be different.
   reduce_d :: (Data -> Data -> Data) -> Data -> Dataset -> Dataset
   reduce_d f z (Dataset r) =
     let
@@ -744,7 +749,7 @@ module MRA.Core
       get l = fromMaybe Undefined (l !! idx)
 
   groupBy :: forall k v. (Ord k) => (v -> k) -> List v -> M.Map k (List v)
-  groupBy f = foldl (flip \v -> M.alter (\old -> Just $ (fromMaybe mempty old) <> pure v) (f v)) M.empty
+  groupBy f = foldl (flip \v -> M.alter (\old -> Just $ fromMaybe mempty old <> pure v) (f v)) M.empty
 
   zipBackwardsWithPadding :: forall a b c. (a -> b -> c) -> (a -> c) -> (b -> c) -> List a -> List b -> List c
   zipBackwardsWithPadding fab fa fb l r = zip0 (reverse l) (reverse r)
@@ -810,6 +815,7 @@ module MRA.Combinators where
   unfracture :: Dataset -> Dataset
   unfracture = map_d id -- TODO
 
+  -- | Replicates the next dimension of information.
   replicate :: Dataset -> Dataset
   replicate = map_d f
     where
@@ -817,6 +823,8 @@ module MRA.Combinators where
       f (Array v0) = let v = zipWith Tuple (primInt <$> (0 .. (length v0 - 1))) v0 in (M.fromList >>> Map) ((\(Tuple i e) -> Tuple i i) <$> v)
       f v          = Map (M.singleton v Undefined)
 
+  -- | Pulls the domain out of the partial functions represented by maps and
+  -- | arrays.
   domain :: Dataset -> Dataset
   domain = replicate >>> lshift_d
 
@@ -890,13 +898,9 @@ module MRA.Combinators where
   array_flatten_indices :: Dataset -> Dataset
   array_flatten_indices = coerce_arrays >>> flatten_id
 
-  -- | Projects a single statically known key from maps. foo.bar{1}
-  static_project_key :: Data -> Dataset -> Dataset
-  static_project_key k = coerce_maps >>> project_d k
-
-  -- | Projects a single statically known index from arrays. foo[0][2]
-  static_project_index :: Int -> Dataset -> Dataset
-  static_project_index idx = coerce_arrays >>> project_d (Primitive (PrimInt idx))
+  -- | Projects a single statically known value. \foo\bar\baz\0\
+  static_project :: Data -> Dataset -> Dataset
+  static_project = project_d
 
   -- | Projects dynamic keys from maps. foo{bar}
   dynamic_project_key :: Dataset -> Dataset -> Dataset
