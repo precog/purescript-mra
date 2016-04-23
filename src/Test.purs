@@ -1,5 +1,5 @@
 module Main where
-  import Prelude(Unit, class Show, class Eq, ($), (==), (/=), (++), bind, const, pure, show)
+  import Prelude(Unit, class Show, class Eq, (<$>), ($), (==), (/=), (++), bind, const, pure, show)
 
   import Data.Tuple(Tuple(..))
 
@@ -27,11 +27,11 @@ module Main where
     if l /= r then log $ "Pass: " ++ show l ++ " /= " ++ show r
     else log $ "FAIL: " ++ show l ++ " == " ++ show r
 
+  toArray :: forall a. L.List a -> Array a
+  toArray = foldl (\as a -> as ++ pure a) []
+
   assertValues :: Array Data -> Dataset -> TestResult
   assertValues a d = assertEqual a (toArray $ values d)
-    where
-      toArray :: forall a. L.List a -> Array a
-      toArray = foldl (\as a -> as ++ pure a) []
 
   entuple :: forall a b. a -> b -> Tuple a b
   entuple = Tuple
@@ -107,7 +107,7 @@ module Main where
 
   test_reduce_d :: TestResult
   test_reduce_d = do
-    log $ show (identities olympics)
+    log $ show (toArray $ (toArray <$> identities olympics))
     assertValues [primInt 3] (count olympics)
 
   test_mra_core :: TestResult

@@ -543,7 +543,7 @@ module MRA.Core
   , values
   ) where
 
-  import Prelude (class Ord, class Show, (>>=), (<$>), (>>>), (<<<), (<*>), (++), ($), (-), (<>), (>), (<), bind, flip, id, return, pure, map, show)
+  import Prelude (class Ord, class Show, (>>=), (<$>), (>>>), (<<<), (<*>), (++), ($), (-), (<>), (>), (<), bind, const, flip, id, return, pure, map, show)
   import Data.List (List(Nil, Cons), length, (..), zipWith, drop, take, (!!), head, filter, reverse, updateAt)
   import Data.OrdMap as M
   import Data.Set(Set(), fromList)
@@ -709,12 +709,15 @@ module MRA.Core
   reduce_d :: (Data -> Data -> Data) -> Data -> Dataset -> Dataset
   reduce_d f z (Dataset r) =
     let
-      reduce :: M.Map Data (List Data) -> List Data
+      reduce :: forall a. (Ord a) => M.Map a (List Data) -> List Data
       reduce m = M.values (foldl (\z -> liftToValue (f z)) z <$> m)
+
+      spy :: forall a. Show a => a -> a
+      spy a = Debug.Trace.traceShow a (const a)
     in
       Dataset {
         dims   : drop 1 r.dims,
-        values : reduce $ groupBy (liftToIdentity $ drop 1) r.values }
+        values : reduce $ groupBy (\d -> drop 1 (get _Identity d)) r.values }
 
   -- | Lifts a literal value into a data set. This is the only possible way of
   -- | constructing a dataset.
@@ -826,8 +829,7 @@ module MRA.Combinators where
       f (Array v0) = let v = zipWith Tuple (primInt <$> (0 .. (length v0 - 1))) v0 in (M.fromList >>> Map) ((\(Tuple i e) -> Tuple i i) <$> v)
       f v          = Map (M.singleton v Undefined)
 
-  -- | Pulls the domain out of the partial functions represented by maps and
-  -- | arrays.
+  -- | Pulls the domain out of the partial functions described by maps and arrays.
   domain :: Dataset -> Dataset
   domain = replicate >>> lshift_d
 
