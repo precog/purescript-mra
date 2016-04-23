@@ -709,8 +709,8 @@ module MRA.Core
   reduce_d :: (Data -> Data -> Data) -> Data -> Dataset -> Dataset
   reduce_d f z (Dataset r) =
     let
-      reduce :: forall a. (Ord a) => M.Map a (List Data) -> List Data
-      reduce m = M.values (foldl (\z -> liftToValue (f z)) z <$> m)
+      reduce :: M.Map (List Data) (List Data) -> List Data
+      reduce = M.toList >>> (map $ \(Tuple i vs) -> makeIdentityValue i (foldl (\z d -> f z (get _Value d)) z vs))
 
       spy :: forall a. Show a => a -> a
       spy a = Debug.Trace.traceShow a (const a)

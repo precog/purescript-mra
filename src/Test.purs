@@ -107,7 +107,6 @@ module Main where
 
   test_reduce_d :: TestResult
   test_reduce_d = do
-    log $ show (toArray $ (toArray <$> identities olympics))
     assertValues [primInt 3] (count olympics)
 
   test_mra_core :: TestResult
