@@ -1,6 +1,6 @@
 {
-  "name": "purescript-mraspec",
-  "homepage": "https://github.com/slamdata/purescript-mraspec",
+  "name": "purescript-mra",
+  "homepage": "https://github.com/quasar-analytics/purescript-mra",
   "description": "A formal specification for MRA",
   "keywords": [
     "purescript"
@@ -18,24 +18,14 @@
     "package.json"
   ],
   "dependencies": {
-    "purescript-debug": "~0.1.3",
-    "purescript-integers": "~0.2.1",
-    "purescript-console": "~0.1.1",
-    "purescript-prelude": "~0.1.4",
-    "purescript-tuples": "~0.4.0",
-    "purescript-either": "~0.2.3",
-    "purescript-monoid": "~0.3.2",
-    "purescript-exceptions": "~0.3.4",
-    "purescript-control": "~0.3.2",
-    "purescript-maybe": "~0.3.5",
-    "purescript-maps": "~0.5.4",
-    "purescript-sets": "~0.5.7",
-    "purescript-math": "~0.2.0",
-    "purescript-strings": "~0.7.1",
-    "purescript-eff": "~0.1.2",
-    "purescript-lists": "~0.7.9",
-    "purescript-profunctor": "~0.3.2",
-    "purescript-foldable-traversable": "~0.4.2",
-    "purescript-transformers": "~0.8.4"
+    "purescript-prelude": "^3.1.0",
+    "purescript-monoid": "^3.1.0",
+    "purescript-foldable-traversable": "^3.4.0",
+    "purescript-lists": "^4.9.0",
+    "purescript-profunctor": "^3.2.0",
+    "purescript-strings": "^3.3.0",
+    "purescript-maps": "^3.5.0",
+    "purescript-sets": "^3.0.0",
+    "purescript-console": "^3.0.0"
   }
 }

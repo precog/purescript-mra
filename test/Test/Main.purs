@@ -1,10 +1,9 @@
-module Main where
-  import Prelude(Unit, class Show, class Eq, (<$>), ($), (==), (/=), (++), bind, const, pure, show)
+module Test.Main where
+  import Prelude(Unit, class Show, class Eq, ($), (==), (/=), (<>), const, pure, show, discard)
 
   import Data.Tuple(Tuple(..))
 
   import Data.Foldable(foldl)
-  import Data.Array as A
   import Data.List as L
 
   import Control.Monad.Eff(Eff)
@@ -12,23 +11,23 @@ module Main where
 
   import MRA.Provenance(Provenance(..), (/\), (\/), (>>))
   import MRA.Data(Data(), makeMap, primString, primInt)
-  import MRA.Core(Dataset(), dimensionality, identities, literal_d, lshift_d, map_d, project_d, values)
+  import MRA.Core(Dataset(), dimensionality, literal_d, lshift_d, map_d, project_d, values)
   import MRA.Combinators(count, map_flatten_values, domain)
 
   type TestResult = forall r. Eff (console :: CONSOLE | r) Unit
 
-  assertEqual :: forall a r. (Show a, Eq a) => a -> a -> Eff (console :: CONSOLE | r) Unit
+  assertEqual :: forall a r. Show a => Eq a => a -> a -> Eff (console :: CONSOLE | r) Unit
   assertEqual l r =
-    if l == r then log $ "Pass: " ++ show l ++ " == " ++ show r
-    else log $ "FAIL: Expected " ++ show l ++ " but found " ++ show r
+    if l == r then log $ "Pass: " <> show l <> " == " <> show r
+    else log $ "FAIL: Expected " <> show l <> " but found " <> show r
 
-  assertNotEqual :: forall a r. (Show a, Eq a) => a -> a -> Eff (console :: CONSOLE | r) Unit
+  assertNotEqual :: forall a r. Show a => Eq a => a -> a -> Eff (console :: CONSOLE | r) Unit
   assertNotEqual l r =
-    if l /= r then log $ "Pass: " ++ show l ++ " /= " ++ show r
-    else log $ "FAIL: " ++ show l ++ " == " ++ show r
+    if l /= r then log $ "Pass: " <> show l <> " /= " <> show r
+    else log $ "FAIL: " <> show l <> " == " <> show r
 
   toArray :: forall a. L.List a -> Array a
-  toArray = foldl (\as a -> as ++ pure a) []
+  toArray = foldl (\as a -> as <> pure a) []
 
   assertValues :: Array Data -> Dataset -> TestResult
   assertValues a d = assertEqual a (toArray $ values d)
